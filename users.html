@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestión de Usuarios</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    form {
+      margin-bottom: 30px;
+    }
+    input {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Usuarios</h1>
+
+  <!-- TABLA -->
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Usuario</th>
+        <th>DNI</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- CREAR -->
+  <h2>Crear Usuario</h2>
+  <form id="createForm">
+    <input name="username" placeholder="Usuario" required />
+    <input name="dni" type="number" placeholder="DNI" required />
+    <input name="password" type="password" placeholder="Password" required />
+    <input name="role" type="number" placeholder="Rol" required />
+    <button type="submit">Crear</button>
+  </form>
+
+  <!-- EDITAR -->
+  <h2>Editar Usuario</h2>
+  <form id="editForm" style="display:none">
+    <input type="hidden" name="id" />
+
+    <input name="username" placeholder="Usuario" required />
+    <input name="dni" type="number" placeholder="DNI" required />
+    <input name="role" type="number" placeholder="Rol" required />
+
+    <!-- 👇 PASSWORD OPCIONAL -->
+    <input
+      name="password"
+      type="password"
+      placeholder="Nueva contraseña (opcional)"
+    />
+
+    <button type="submit">Actualizar</button>
+    <button type="button" onclick="cancelEdit()">Cancelar</button>
+  </form>
+
+  <script>
+    const API = "http://localhost:3000/users";
+
+    const tableBody = document.querySelector("#usersTable tbody");
+    const createForm = document.getElementById("createForm");
+    const editForm = document.getElementById("editForm");
+
+    async function loadUsers() {
+      const res = await fetch(API);
+      const users = await res.json();
+
+      tableBody.innerHTML = "";
+      users.forEach(u => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${u._id}</td>
+          <td>${u.username}</td>
+          <td>${u.dni}</td>
+          <td>${u.role}</td>
+          <td>
+            <button onclick="editUser('${u._id}')">Editar</button>
+            <button onclick="deleteUser('${u._id}')">Eliminar</button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // CREAR
+    createForm.addEventListener("submit", async e => {
+      e.preventDefault();
+
+      const data = {
+        username: createForm.username.value,
+        dni: Number(createForm.dni.value),
+        password: createForm.password.value,
+        role: Number(createForm.role.value)
+      };
+
+      await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      createForm.reset();
+      loadUsers();
+    });
+
+    // CARGAR EN FORM EDICIÓN
+    async function editUser(id) {
+      const res = await fetch(API);
+      const users = await res.json();
+      const user = users.find(u => u._id === id);
+      if (!user) return alert("Usuario no encontrado");
+
+      editForm.id.value = user._id;
+      editForm.username.value = user.username;
+      editForm.dni.value = user.dni;
+      editForm.role.value = user.role;
+      editForm.password.value = "";
+
+      editForm.style.display = "block";
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    // ACTUALIZAR
+    editForm.addEventListener("submit", async e => {
+      e.preventDefault();
+
+      const id = editForm.id.value;
+
+      const data = {
+        username: editForm.username.value,
+        dni: Number(editForm.dni.value),
+        role: Number(editForm.role.value)
+      };
+
+      // 👉 solo envía password si se escribió algo
+      if (editForm.password.value.trim() !== "") {
+        data.password = editForm.password.value;
+      }
+
+      await fetch(`${API}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      editForm.reset();
+      editForm.style.display = "none";
+      loadUsers();
+    });
+
+    function cancelEdit() {
+      editForm.reset();
+      editForm.style.display = "none";
+    }
+
+    // ELIMINAR
+    async function deleteUser(id) {
+      if (!confirm("¿Eliminar usuario?")) return;
+      await fetch(`${API}/${id}`, { method: "DELETE" });
+      loadUsers();
+    }
+
+    loadUsers();
+  </script>
+
+</body>
+</html>
