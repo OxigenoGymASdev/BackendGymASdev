@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { UserModel, Role } from "../models/user.model";
+import bcrypt from "bcrypt";
 
 /* ===== GET /users ===== */
 export const getUsers = async (_req: Request, res: Response) => {
@@ -85,4 +86,33 @@ export const deleteUser = async (req: Request, res: Response) => {
   }
 
   res.json({ message: "Usuario eliminado correctamente" });
+};
+
+/* ===== POST /users/login ===== */
+export const loginUser = async (req: Request, res: Response) => {
+  const { dni, password } = req.body;
+
+  if (!dni || !password) {
+    return res.status(400).json({ message: "Faltan credenciales" });
+  }
+
+  // 👇 IMPORTANTE: select("+password")
+  const user = await UserModel.findOne({ dni }).select("+password");
+
+  if (!user) {
+    return res.status(400).json({ message: "DNI o contraseña incorrecta" });
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    return res.status(400).json({ message: "DNI o contraseña incorrecta" });
+  }
+
+  res.json({
+    id: user._id,
+    username: user.username,
+    dni: user.dni,
+    role: user.role,
+  });
 };
