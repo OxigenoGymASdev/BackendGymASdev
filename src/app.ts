@@ -10,15 +10,15 @@ export const app = express();
 
 app.use(express.json());
 
-// Configuración de CORS mejorada
 app.use(cors({
-  // Reemplaza esta URL con la que te dio Vercel
   origin: [
     "https://oxigeno-eight.vercel.app", 
-    "http://localhost:5173" // Mantenemos el local para que puedas seguir probando en tu PC
+    "http://localhost:5173"
   ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  // Agregamos PATCH y OPTIONS a la lista de métodos permitidos
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"] // Asegura que los headers comunes estén permitidos
 }));
 
 app.use("/users", userRoutes);
