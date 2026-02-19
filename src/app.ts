@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(cors({
   // Reemplaza esta URL con la que te dio Vercel
   origin: [
-    "https://oxigeno-kappa.vercel.app", 
+    "https://oxigeno-eight.vercel.app", 
     "http://localhost:5173" // Mantenemos el local para que puedas seguir probando en tu PC
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
