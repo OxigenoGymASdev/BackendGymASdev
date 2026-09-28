@@ -102,7 +102,7 @@ const paymentInfo = () => ({
   bank: process.env.PAYMENT_BANK || "Mercado Pago",
   // Solo números, con código de país (549 + característica + número)
   whatsapp: (process.env.CONTACT_WHATSAPP || "5493564619223").replace(/\D/g, ""),
-  cancelNoticeHours: Number(process.env.CANCEL_NOTICE_HOURS) || 2
+  cancelNoticeHours: Number(process.env.CANCEL_NOTICE_HOURS) || 8
 });
 
 // Todo dato que viene del formulario se escapa antes de ir al HTML del email
